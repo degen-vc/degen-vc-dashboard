@@ -31,7 +31,7 @@ const web3Modal = new Web3Modal({
   providerOptions, // required
 });
 
-export const targetNetwork = networkInfo.kovan;
+export const targetNetwork = networkInfo.polygon;
 
 const connectWallet = async (
   setLocalProvider: setProvider,

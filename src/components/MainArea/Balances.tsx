@@ -1,8 +1,13 @@
 import { useState, useEffect } from "react";
-import { HStack, Text, Spacer, Box, Heading, Button } from "@chakra-ui/react";
+import { HStack, Text, Spacer, Box, Heading } from "@chakra-ui/react";
 import { Contract, ethers, BigNumber } from "ethers";
-import { Web3Provider, Signer } from "../../types";
-import ConnectWallet, { targetNetwork } from "./ConnectWallet";
+import { formatNumber, toDecimal } from "../../utils";
+import { targetNetwork } from "./ConnectWallet";
+
+type Balance = {
+  balance: BigNumber, 
+  decimals: number
+}
 
 const TokenBalance = ({
   tokenName,
@@ -19,18 +24,27 @@ const TokenBalance = ({
 );
 
 function Balances({address, provider}: {address: string | undefined, provider: any} ) {
-  const { dgvcAddress } = targetNetwork;
+  const { dgvcAddress, usdcAddress, wbtcAddress } = targetNetwork;
   console.log('first', address);
   
   const DGVC2ABI = require("../../abi/DGVC2.json");
+  const USDCABI = require("../../abi/USDC.json");
+  const WBTCABI = require("../../abi/WBTC.json");
 
   const [dgvcToken, setDgvcToken] = useState<Contract>();
-  const [dgvcBalance, setDgvcBalance] = useState<BigNumber>(BigNumber.from(0));
-  // const [provider, setProvider] = useState<Web3Provider>();
+  const [usdcToken, setUsdcToken] = useState<Contract>();
+  const [wbtcToken, setWbtcToken] = useState<Contract>();
+
+  const [dgvcBalance, setDgvcBalance] = useState<Balance>({balance: BigNumber.from(0), decimals: 0});
+  const [usdcBalance, setUsdcBalance] = useState<Balance>({balance: BigNumber.from(0), decimals: 0});
+  const [wbtcBalance, setWbtcBalance] = useState<Balance>({balance: BigNumber.from(0), decimals: 0});
+  const [maticBalance, setMaticBalance] = useState<Balance>({balance: BigNumber.from(0), decimals: 0});
 
   useEffect(() => {
     if (provider) {
       setDgvcToken(new ethers.Contract(dgvcAddress, DGVC2ABI, provider));
+      setUsdcToken(new ethers.Contract(usdcAddress, USDCABI, provider));
+      setWbtcToken(new ethers.Contract(wbtcAddress, WBTCABI, provider));
     }
   }, [provider]);
 
@@ -41,13 +55,30 @@ function Balances({address, provider}: {address: string | undefined, provider: a
   }, [address]);
 
   const fetchUserBalance = async () => {
-    console.log('fetchUserBalance', address);
-    console.log(dgvcToken);
-    
-    const bal = await dgvcToken!.balanceOf(address?.toString())
-    console.log(bal);
-    
-    setDgvcBalance(await dgvcToken!.balanceOf(address));
+    const dgvcBalanceInfo = {
+      balance: await dgvcToken!.balanceOf(address),
+      decimals: await dgvcToken!.decimals()
+    }
+ 
+    const usdcBalanceInfo = {
+      balance: await usdcToken!.balanceOf(address),
+      decimals: await usdcToken!.decimals()
+    }
+
+    const wbtcBalanceInfo = {
+      balance: await wbtcToken!.balanceOf(address),
+      decimals: await wbtcToken!.decimals()
+    }
+
+    const maticBalanceInfo = {
+      balance: await provider.getBalance(address),
+      decimals: 18
+    }
+
+    setDgvcBalance(dgvcBalanceInfo);
+    setUsdcBalance(usdcBalanceInfo);
+    setWbtcBalance(wbtcBalanceInfo);
+    setMaticBalance(maticBalanceInfo);
   };
 
   return (
@@ -56,11 +87,11 @@ function Balances({address, provider}: {address: string | undefined, provider: a
         <Heading fontSize="2xl" pb="1rem">
           Balances
         </Heading>
-        <TokenBalance tokenName="DGVC" balance={dgvcBalance.toString()} />
+        <TokenBalance tokenName="DGVC" balance={formatNumber(dgvcBalance.balance, dgvcBalance.decimals)} />
         <TokenBalance tokenName="DGVC LP" balance="XX"/>
-        <TokenBalance tokenName="Matic" balance="XX"/>
-        <TokenBalance tokenName="Usdc" balance="XX"/>
-        <TokenBalance tokenName="Wbtc" balance="XX"/>
+        <TokenBalance tokenName="Matic" balance={formatNumber(maticBalance.balance, maticBalance.decimals)}/>
+        <TokenBalance tokenName="Usdc" balance={formatNumber(usdcBalance.balance, usdcBalance.decimals)}/>
+        <TokenBalance tokenName="Wbtc" balance={formatNumber(wbtcBalance.balance, dgvcBalance.decimals)}/>
       </Box>
     </Box>
   );

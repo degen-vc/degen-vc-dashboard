@@ -9,7 +9,9 @@ const networkInfo = {
   polygon: {
     chainId: 137,
     name: "Polygon Mainnet",
-    v1TokenAddress: "0x000000000000000000000000000000000000dEaD",
+    dgvcAddress: "0xE9e0ef8b427365De2beD636C7771C47d6d91c981",
+    usdcAddress: "0x2791bca1f2de4661ed88a30c99a7a9449aa84174",
+    wbtcAddress: "0x1bfd67037b42cf73acf2047067bd4f2c47d9bfd6",
     v2TokenAddress: "0x000000000000000000000000000000000000dEaD",
     tokenSwapAddress: "0x000000000000000000000000000000000000dEaD",
   },
