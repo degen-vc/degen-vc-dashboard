@@ -1,3 +1,5 @@
+import { useState, useEffect } from "react";
+
 import { VStack, Box, Flex } from "@chakra-ui/react";
 import AlphadropBox from "./AlphadropBox";
 import ArticlesList from "./ArticlesList";
@@ -8,7 +10,32 @@ import FAQ from "./FAQ";
 import LPInfoCard from "./LPInfoCard";
 import TopLinks from "./TopLinks";
 
+import ConnectWallet, { targetNetwork } from "./ConnectWallet";
+import { Web3Provider, Signer } from "../../types";
+
 function MainArea() {
+
+  const [provider, setProvider] = useState<Web3Provider>();
+  const [signer, setSigner] = useState<Signer>();
+  const [signerAddress, setSignerAddress] = useState<string>();
+
+  useEffect(() => {
+    if (provider) {
+      setSigner(provider.getSigner(0));
+    }
+  }, [provider]);
+
+  // Get signer address
+  useEffect(() => {
+    const getSignerAddress = async () => {
+      if (signer) {
+        setSignerAddress(await signer.getAddress());
+      }
+    };
+
+    getSignerAddress();
+  }, [signer]);
+
   return (
     <VStack
       py="2rem"
@@ -17,7 +44,7 @@ function MainArea() {
       color="white"
       align="flex-start"
     >
-      <TopLinks />
+      <TopLinks setProvider={setProvider} signerAddress={signerAddress}/>
       <AlphadropBox />
       <Box pt={{ base: "1rem", md: "2rem" }} w="100%">
         <Flex
@@ -32,7 +59,7 @@ function MainArea() {
             w="100%"
           >
             <DGVCPrice />
-            <Balances />
+            <Balances address={signerAddress} provider={provider}/>
           </Box>
           <Box pb="2">
             <BuyPoolBox />

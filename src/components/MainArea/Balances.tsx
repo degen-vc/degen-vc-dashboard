@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { HStack, Text, Spacer, Box, Heading, Button } from "@chakra-ui/react";
 import { Contract, ethers, BigNumber } from "ethers";
-import ConnectWallet, { targetNetwork } from "./ConnectWallet";
 import { Web3Provider, Signer } from "../../types";
+import ConnectWallet, { targetNetwork } from "./ConnectWallet";
 
 const TokenBalance = ({
   tokenName,
@@ -18,44 +18,36 @@ const TokenBalance = ({
   </HStack>
 );
 
-function Balances() {
+function Balances({address, provider}: {address: string | undefined, provider: any} ) {
   const { dgvcAddress } = targetNetwork;
-
+  console.log('first', address);
+  
   const DGVC2ABI = require("../../abi/DGVC2.json");
 
   const [dgvcToken, setDgvcToken] = useState<Contract>();
   const [dgvcBalance, setDgvcBalance] = useState<BigNumber>(BigNumber.from(0));
-  const [provider, setProvider] = useState<Web3Provider>();
-  const [signer, setSigner] = useState<Signer>();
-  const [signerAddress, setSignerAddress] = useState<string>();
+  // const [provider, setProvider] = useState<Web3Provider>();
 
   useEffect(() => {
     if (provider) {
       setDgvcToken(new ethers.Contract(dgvcAddress, DGVC2ABI, provider));
-      setSigner(provider.getSigner(0));
-      
     }
   }, [provider]);
 
-  // Get signer address
   useEffect(() => {
-    const getSignerAddress = async () => {
-      if (signer) {
-        setSignerAddress(await signer.getAddress());
-      }
-    };
-
-    getSignerAddress();
-  }, [signer]);
-
-  useEffect(() => {
-    if (signerAddress) {
+    if (address) {
       fetchUserBalance();
     }
-  }, [signerAddress]);
+  }, [address]);
 
   const fetchUserBalance = async () => {
-    setDgvcBalance(await dgvcToken!.balanceOf(signerAddress));
+    console.log('fetchUserBalance', address);
+    console.log(dgvcToken);
+    
+    const bal = await dgvcToken!.balanceOf(address?.toString())
+    console.log(bal);
+    
+    setDgvcBalance(await dgvcToken!.balanceOf(address));
   };
 
   return (
@@ -65,10 +57,10 @@ function Balances() {
           Balances
         </Heading>
         <TokenBalance tokenName="DGVC" balance={dgvcBalance.toString()} />
-        <TokenBalance tokenName="DGVC LP" balance="XX" />
-        <TokenBalance tokenName="Matic" balance="XX" />
-        <TokenBalance tokenName="Usdc" balance="XX" />
-        <TokenBalance tokenName="Wbtc" balance="XX" />
+        <TokenBalance tokenName="DGVC LP" balance="XX"/>
+        <TokenBalance tokenName="Matic" balance="XX"/>
+        <TokenBalance tokenName="Usdc" balance="XX"/>
+        <TokenBalance tokenName="Wbtc" balance="XX"/>
       </Box>
     </Box>
   );

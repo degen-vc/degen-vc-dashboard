@@ -4,27 +4,7 @@ import { Flex, Text, Link, HStack, Box} from "@chakra-ui/react";
 import ConnectWallet, { targetNetwork } from "./ConnectWallet";
 import { Web3Provider, Signer } from "../../types";
 
-function TopLinks() {
-  const [provider, setProvider] = useState<Web3Provider>();
-  const [signer, setSigner] = useState<Signer>();
-  const [signerAddress, setSignerAddress] = useState<string>();
-
-  useEffect(() => {
-    if (provider) {
-      setSigner(provider.getSigner(0));
-    }
-  }, [provider]);
-
-  // Get signer address
-  useEffect(() => {
-    const getSignerAddress = async () => {
-      if (signer) {
-        setSignerAddress(await signer.getAddress());
-      }
-    };
-
-    getSignerAddress();
-  }, [signer]);
+function TopLinks({setProvider, signerAddress}: {setProvider: any, signerAddress: string | undefined}) {
 
   return (
     <Flex direction={{ base: "column", md: "row" }}>
@@ -41,6 +21,16 @@ function TopLinks() {
         <Link href="" isExternal>
           Receive Alphadrops
         </Link>
+        <Box mt="5rem">
+          {!signerAddress ? (
+            <ConnectWallet setProvider={setProvider} />
+          ) : (
+              <HStack>
+                <Text>Your Address: </Text>
+                <Text fontWeight="semibold">{signerAddress}</Text>
+              </HStack>
+          )}
+        </Box>
       </HStack>
     </Flex>
   );
