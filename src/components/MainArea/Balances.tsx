@@ -24,27 +24,31 @@ const TokenBalance = ({
 );
 
 function Balances({address, provider}: {address: string | undefined, provider: any} ) {
-  const { dgvcAddress, usdcAddress, wbtcAddress } = targetNetwork;
+  const { dgvcAddress, dgvcLpAddress, usdcAddress, wbtcAddress } = targetNetwork;
   console.log('first', address);
   
   const DGVC2ABI = require("../../abi/DGVC2.json");
-  const USDCABI = require("../../abi/USDC.json");
-  const WBTCABI = require("../../abi/WBTC.json");
+  const USDCABI = require("../../abi/ERC20.json");
+  const WBTCABI = require("../../abi/ERC20.json");
+  const DGVCLPABI = require("../../abi/ERC20.json");
 
   const [dgvcToken, setDgvcToken] = useState<Contract>();
   const [usdcToken, setUsdcToken] = useState<Contract>();
   const [wbtcToken, setWbtcToken] = useState<Contract>();
+  const [dgvcLpToken, setDgvcLpToken] = useState<Contract>();
 
   const [dgvcBalance, setDgvcBalance] = useState<Balance>({balance: BigNumber.from(0), decimals: 0});
   const [usdcBalance, setUsdcBalance] = useState<Balance>({balance: BigNumber.from(0), decimals: 0});
   const [wbtcBalance, setWbtcBalance] = useState<Balance>({balance: BigNumber.from(0), decimals: 0});
   const [maticBalance, setMaticBalance] = useState<Balance>({balance: BigNumber.from(0), decimals: 0});
+  const [dgvcLpBalance, setDgvcLpBalance] = useState<Balance>({balance: BigNumber.from(0), decimals: 0});
 
   useEffect(() => {
     if (provider) {
       setDgvcToken(new ethers.Contract(dgvcAddress, DGVC2ABI, provider));
       setUsdcToken(new ethers.Contract(usdcAddress, USDCABI, provider));
       setWbtcToken(new ethers.Contract(wbtcAddress, WBTCABI, provider));
+      setDgvcLpToken(new ethers.Contract(dgvcLpAddress, DGVCLPABI, provider));
     }
   }, [provider]);
 
@@ -75,10 +79,16 @@ function Balances({address, provider}: {address: string | undefined, provider: a
       decimals: 18
     }
 
+    const dgvcLpBalanceInfo = {
+      balance: await dgvcLpToken!.balanceOf(address),
+      decimals: await dgvcLpToken!.decimals()
+    }
+
     setDgvcBalance(dgvcBalanceInfo);
     setUsdcBalance(usdcBalanceInfo);
     setWbtcBalance(wbtcBalanceInfo);
     setMaticBalance(maticBalanceInfo);
+    setDgvcLpBalance(dgvcLpBalanceInfo);
   };
 
   return (
@@ -88,7 +98,7 @@ function Balances({address, provider}: {address: string | undefined, provider: a
           Balances
         </Heading>
         <TokenBalance tokenName="DGVC" balance={formatNumber(dgvcBalance.balance, dgvcBalance.decimals)} />
-        <TokenBalance tokenName="DGVC LP" balance="XX"/>
+        <TokenBalance tokenName="DGVC LP" balance={formatNumber(dgvcLpBalance.balance, dgvcLpBalance.decimals)}/>
         <TokenBalance tokenName="Matic" balance={formatNumber(maticBalance.balance, maticBalance.decimals)}/>
         <TokenBalance tokenName="Usdc" balance={formatNumber(usdcBalance.balance, usdcBalance.decimals)}/>
         <TokenBalance tokenName="Wbtc" balance={formatNumber(wbtcBalance.balance, dgvcBalance.decimals)}/>
