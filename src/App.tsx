@@ -12,6 +12,7 @@ import MobileNav from "./components/MobileNav";
 
 export default function App() {
   const { isOpen, onOpen, onClose } = useDisclosure();
+
   return (
     <Box minH="100vh" bg={useColorModeValue("gray.100", "gray.900")}>
       <Sidebar
