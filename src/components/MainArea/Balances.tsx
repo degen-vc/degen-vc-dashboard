@@ -28,9 +28,7 @@ function Balances({address, provider}: {address: string | undefined, provider: a
   console.log('first', address);
   
   const DGVC2ABI = require("../../abi/DGVC2.json");
-  const USDCABI = require("../../abi/ERC20.json");
-  const WBTCABI = require("../../abi/ERC20.json");
-  const DGVCLPABI = require("../../abi/ERC20.json");
+  const ERC20ABI = require("../../abi/ERC20.json");
 
   const [dgvcToken, setDgvcToken] = useState<Contract>();
   const [usdcToken, setUsdcToken] = useState<Contract>();
@@ -46,9 +44,9 @@ function Balances({address, provider}: {address: string | undefined, provider: a
   useEffect(() => {
     if (provider) {
       setDgvcToken(new ethers.Contract(dgvcAddress, DGVC2ABI, provider));
-      setUsdcToken(new ethers.Contract(usdcAddress, USDCABI, provider));
-      setWbtcToken(new ethers.Contract(wbtcAddress, WBTCABI, provider));
-      setDgvcLpToken(new ethers.Contract(dgvcLpAddress, DGVCLPABI, provider));
+      setUsdcToken(new ethers.Contract(usdcAddress, ERC20ABI, provider));
+      setWbtcToken(new ethers.Contract(wbtcAddress, ERC20ABI, provider));
+      setDgvcLpToken(new ethers.Contract(dgvcLpAddress, ERC20ABI, provider));
     }
   }, [provider]);
 
