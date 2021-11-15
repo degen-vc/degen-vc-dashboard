@@ -1,4 +1,15 @@
-import { HStack, Text, Spacer, NumberInput, Heading, Box, NumberInputField, Button, useToast } from "@chakra-ui/react";
+import {
+  InputRightElement,
+  HStack,
+  Text,
+  Spacer,
+  NumberInput,
+  Heading,
+  Box,
+  NumberInputField,
+  Button,
+  useToast,
+} from "@chakra-ui/react";
 import { useState, useEffect } from "react";
 import { formatNumber, toDecimal } from "../../utils";
 import { targetNetwork } from "./ConnectWallet";
@@ -6,7 +17,13 @@ import { Contract, ethers, BigNumber, utils } from "ethers";
 import { Web3Provider, Signer } from "../../types";
 import { MaxUint256 } from "@ethersproject/constants";
 
-function DGVCPrice({signer, provider}: {signer: Signer | undefined, provider: any}) {
+function DGVCPrice({
+  signer,
+  provider,
+}: {
+  signer: Signer | undefined;
+  provider: any;
+}) {
   const { tokenSwapAddress, dgvc1Address } = targetNetwork;
 
   const toast = useToast();
@@ -19,19 +36,45 @@ function DGVCPrice({signer, provider}: {signer: Signer | undefined, provider: an
 
   const [tokenSwap, setTokenSwap] = useState<Contract>();
   const [v1Token, setDgvc1Swap] = useState<Contract>();
+  const [signerAddress, setSignerAddress] = useState<string>();
+
+  const [v1Balance, setV1Balance] = useState<BigNumber>(BigNumber.from(0));
 
   useEffect(() => {
     if (provider) {
-      setTokenSwap(new ethers.Contract(tokenSwapAddress, TokenSwapABI, provider));
+      setTokenSwap(
+        new ethers.Contract(tokenSwapAddress, TokenSwapABI, provider)
+      );
       setDgvc1Swap(new ethers.Contract(dgvc1Address, ERC20ABI, provider));
     }
   }, [provider]);
 
+  useEffect(() => {
+    const getSignerAddress = async () => {
+      if (signer) {
+        setSignerAddress(await signer.getAddress());
+      }
+    };
+    getSignerAddress();
+  }, [signer]);
+
+  useEffect(() => {
+    if (signerAddress) {
+      fetchUserBalance();
+    }
+  }, [signerAddress]);
+
+  const fetchUserBalance = async () => {
+    setV1Balance(await v1Token!.balanceOf(signerAddress));
+  };
   const bridge = async () => {
     setLoading(true);
     if (signer) {
-      const allowance = await v1Token!.allowance(signer.getAddress(), tokenSwapAddress);
-      
+      const allowance = await v1Token!.allowance(
+        signer.getAddress(),
+        tokenSwapAddress
+      );
+
       if (allowance.lt(value)) {
         try {
           const approveTxn = await v1Token!
@@ -45,9 +88,9 @@ function DGVCPrice({signer, provider}: {signer: Signer | undefined, provider: an
         }
       }
       try {
-        const tx = await tokenSwap!.connect(signer!).bridge(utils.parseUnits(value, 18));
+        const tx = await tokenSwap!.connect(signer!).bridge(value);
         await tx.wait();
-        // await fetchUserBalance();
+        await fetchUserBalance();
       } catch {
         errorToast("Can't Bridge");
       }
@@ -68,27 +111,42 @@ function DGVCPrice({signer, provider}: {signer: Signer | undefined, provider: an
   return (
     <Box pt={{ base: "1.5rem", md: "2rem" }}>
       <Box border="1.5px solid white" p="1.5rem" px="2rem" rounded="xl">
-      <Heading fontSize="2xl" pb="1rem">
+        <Heading fontSize="2xl" pb="1rem">
           Migrate to DGVCv2
         </Heading>
-    <HStack>
-      <NumberInput
-      onChange={(valueString) => setValue(valueString)}
-      value={value}>
-      <NumberInputField />
-      </NumberInput>
-      {/* <Text>$DGVC</Text> */}
-      <Spacer />
-      <Button
-      isLoading={loading}
-      pl="1rem"
-      mt="1rem"
-      onClick={() => {
-        bridge();
-      }}>Migrate</Button>
-      {/* <Text>XX</Text> */}
-    </HStack>
-    </Box>
+        <Text color="gray.300">Balance: {formatNumber(v1Balance, 18)}</Text>
+        <HStack>
+          <NumberInput
+            onChange={(valueString) => setValue(valueString)}
+            value={value}
+          >
+            <InputRightElement w="4.5rem" mr="0.1rem">
+              <Button
+                h="1.75rem"
+                size="sm"
+                onClick={() => setValue(formatNumber(v1Balance, 18))}
+                isDisabled={!signer}
+              >
+                Max
+              </Button>
+            </InputRightElement>
+            <NumberInputField />
+          </NumberInput>
+          {/* <Text>$DGVC</Text> */}
+          <Spacer />
+          <Button
+            isLoading={loading}
+            pl="1rem"
+            mt="1rem"
+            onClick={() => {
+              bridge();
+            }}
+          >
+            Migrate
+          </Button>
+          {/* <Text>XX</Text> */}
+        </HStack>
+      </Box>
     </Box>
   );
 }
