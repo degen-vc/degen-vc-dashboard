@@ -23,10 +23,9 @@ const TokenBalance = ({
   </HStack>
 );
 
-function Balances({address, provider}: {address: string | undefined, provider: any} ) {
+function Balances({address, provider}: {address: string | undefined, provider: any}) {
   const { dgvcAddress, dgvcLpAddress, usdcAddress, wbtcAddress } = targetNetwork;
-  console.log('first', address);
-  
+
   const DGVC2ABI = require("../../abi/DGVC2.json");
   const ERC20ABI = require("../../abi/ERC20.json");
 
