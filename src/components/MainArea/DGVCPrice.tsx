@@ -2,7 +2,7 @@ import { HStack, Text, Spacer, NumberInput, Heading, Box, NumberInputField, Butt
 import { useState, useEffect } from "react";
 import { formatNumber, toDecimal } from "../../utils";
 import { targetNetwork } from "./ConnectWallet";
-import { Contract, ethers, BigNumber } from "ethers";
+import { Contract, ethers, BigNumber, utils } from "ethers";
 import { Web3Provider, Signer } from "../../types";
 import { MaxUint256 } from "@ethersproject/constants";
 
@@ -31,9 +31,6 @@ function DGVCPrice({signer, provider}: {signer: Signer | undefined, provider: an
     setLoading(true);
     if (signer) {
       const allowance = await v1Token!.allowance(signer.getAddress(), tokenSwapAddress);
-      console.log(allowance);
-      console.log(value);
-      console.log();
       
       if (allowance.lt(value)) {
         try {
@@ -48,7 +45,7 @@ function DGVCPrice({signer, provider}: {signer: Signer | undefined, provider: an
         }
       }
       try {
-        const tx = await tokenSwap!.connect(signer!).bridge(value);
+        const tx = await tokenSwap!.connect(signer!).bridge(utils.parseUnits(value, 18));
         await tx.wait();
         // await fetchUserBalance();
       } catch {
