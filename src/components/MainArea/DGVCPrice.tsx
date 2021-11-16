@@ -1,15 +1,4 @@
-import {
-  InputRightElement,
-  HStack,
-  Text,
-  Spacer,
-  NumberInput,
-  Heading,
-  Box,
-  NumberInputField,
-  Button,
-  useToast,
-} from "@chakra-ui/react";
+import { HStack, Text, Spacer, NumberInput, Heading, Box, NumberInputField, Button, useToast, InputRightElement } from "@chakra-ui/react";
 import { useState, useEffect } from "react";
 import { formatNumber, toDecimal } from "../../utils";
 import { targetNetwork } from "./ConnectWallet";
@@ -17,14 +6,8 @@ import { Contract, ethers, BigNumber, utils } from "ethers";
 import { Web3Provider, Signer } from "../../types";
 import { MaxUint256 } from "@ethersproject/constants";
 
-function DGVCPrice({
-  signer,
-  provider,
-}: {
-  signer: Signer | undefined;
-  provider: any;
-}) {
-  const { tokenSwapAddress, dgvc1Address } = targetNetwork;
+function DGVCPrice({signer, provider}: {signer: Signer | undefined, provider: any}) {
+  const { tokenSwapAddress, dgvc1Address, dgvcAddress } = targetNetwork;
 
   const toast = useToast();
 
@@ -35,47 +18,40 @@ function DGVCPrice({
   const ERC20ABI = require("../../abi/ERC20.json");
 
   const [tokenSwap, setTokenSwap] = useState<Contract>();
-  const [v1Token, setDgvc1Swap] = useState<Contract>();
-  const [signerAddress, setSignerAddress] = useState<string>();
+  const [v1Token, setDgvc1Contract] = useState<Contract>();
+  const [dgvcToken, setDgvcToken] = useState<Contract>();
 
-  const [v1Balance, setV1Balance] = useState<BigNumber>(BigNumber.from(0));
+  const [dgvcBalance, setDgvcBalance] = useState<BigNumber>(BigNumber.from(0));
+  const [dgvcV2Balance, setDgvcV2Balance] = useState<BigNumber>(BigNumber.from(0));
+  const [swapBalance, setSwapBalance] = useState<BigNumber>(BigNumber.from(0));
 
   useEffect(() => {
     if (provider) {
-      setTokenSwap(
-        new ethers.Contract(tokenSwapAddress, TokenSwapABI, provider)
-      );
-      setDgvc1Swap(new ethers.Contract(dgvc1Address, ERC20ABI, provider));
+      setTokenSwap(new ethers.Contract(tokenSwapAddress, TokenSwapABI, provider));
+      setDgvc1Contract(new ethers.Contract(dgvc1Address, ERC20ABI, provider));
+      setDgvcToken(new ethers.Contract(dgvcAddress, ERC20ABI, provider));
     }
   }, [provider]);
 
-  useEffect(() => {
-    const getSignerAddress = async () => {
-      if (signer) {
-        setSignerAddress(await signer.getAddress());
-      }
-    };
-    getSignerAddress();
-  }, [signer]);
-
-  useEffect(() => {
-    if (signerAddress) {
-      fetchUserBalance();
+  const fetchBalances = async () => {
+    if (signer) {
+      setDgvcBalance(await v1Token!.balanceOf(signer.getAddress()));
+      setSwapBalance(await dgvcToken!.balanceOf(tokenSwapAddress));
     }
-  }, [signerAddress]);
+  }
 
-  const fetchUserBalance = async () => {
-    setV1Balance(await v1Token!.balanceOf(signerAddress));
-  };
+  useEffect(() => {
+    if (v1Token && dgvcToken) {
+      fetchBalances();
+    }
+  }, [v1Token]);
+
   const bridge = async () => {
     setLoading(true);
     if (signer) {
-      const allowance = await v1Token!.allowance(
-        signer.getAddress(),
-        tokenSwapAddress
-      );
-
-      if (allowance.lt(value)) {
+      const allowance = await v1Token!.allowance(signer.getAddress(), tokenSwapAddress);
+      
+      if (allowance.lt(utils.parseUnits(value, 18))) {
         try {
           const approveTxn = await v1Token!
             .connect(signer!)
@@ -88,9 +64,9 @@ function DGVCPrice({
         }
       }
       try {
-        const tx = await tokenSwap!.connect(signer!).bridge(value);
+        const tx = await tokenSwap!.connect(signer!).bridge(utils.parseUnits(value, 18));
         await tx.wait();
-        await fetchUserBalance();
+        // await fetchUserBalance();
       } catch {
         errorToast("Can't Bridge");
       }
@@ -111,42 +87,37 @@ function DGVCPrice({
   return (
     <Box pt={{ base: "1.5rem", md: "2rem" }}>
       <Box border="1.5px solid white" p="1.5rem" px="2rem" rounded="xl">
-        <Heading fontSize="2xl" pb="1rem">
+      <Heading fontSize="2xl" pb="1rem">
           Migrate to DGVCv2
         </Heading>
-        <Text color="gray.300">Balance: {formatNumber(v1Balance, 18)}</Text>
-        <HStack>
-          <NumberInput
-            onChange={(valueString) => setValue(valueString)}
-            value={value}
-          >
-            <InputRightElement w="4.5rem" mr="0.1rem">
-              <Button
-                h="1.75rem"
-                size="sm"
-                onClick={() => setValue(formatNumber(v1Balance, 18))}
-                isDisabled={!signer}
-              >
-                Max
-              </Button>
-            </InputRightElement>
-            <NumberInputField />
-          </NumberInput>
-          {/* <Text>$DGVC</Text> */}
-          <Spacer />
+    <HStack>
+    <Text color="gray.300">DGVCv1 Balance: {formatNumber(dgvcBalance, 18)}</Text>
+      <NumberInput
+      onChange={(valueString) => setValue(valueString)}
+      value={value}>
+        <InputRightElement w="4.5rem" mr="0.1rem">
           <Button
-            isLoading={loading}
-            pl="1rem"
-            mt="1rem"
-            onClick={() => {
-              bridge();
-            }}
+            h="1.75rem"
+            size="sm"
+            onClick={() => setValue(formatNumber(swapBalance, 18))}
+            isDisabled={!signer}
           >
-            Migrate
+            Max
           </Button>
-          {/* <Text>XX</Text> */}
-        </HStack>
-      </Box>
+        </InputRightElement>
+        <NumberInputField />
+      </NumberInput>
+      <Spacer />
+      <Button
+      isLoading={loading}
+      pl="1rem"
+      mt="1rem"
+      isDisabled={!signer}
+      onClick={() => {
+        bridge();
+      }}>Migrate</Button>
+    </HStack>
+    </Box>
     </Box>
   );
 }
