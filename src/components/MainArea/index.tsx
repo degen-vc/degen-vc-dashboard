@@ -58,7 +58,7 @@ function MainArea() {
             pb={{ base: "1", md: "2" }}
             w="100%"
           >
-            <DGVCPrice />
+            <DGVCPrice signer={signer} provider={provider}/>
             <Balances address={signerAddress} provider={provider}/>
           </Box>
           <Box pb="2">

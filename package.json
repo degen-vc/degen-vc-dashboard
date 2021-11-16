@@ -20,6 +20,9 @@
     "@types/node": "^16.7.2",
     "@types/react": "^17.0.19",
     "@types/react-dom": "^17.0.9",
+    "@uniswap/sdk": "^3.0.3",
+    "@walletconnect/web3-provider": "^1.6.5",
+    "ethers": "^5.4.6",
     "framer-motion": "^4",
     "luxon": "^2.0.2",
     "react": "^17.0.1",
@@ -27,8 +30,6 @@
     "react-scripts": "4.0.1",
     "typescript": "^4.3.5",
     "web-vitals": "^0.2.4",
-    "@walletconnect/web3-provider": "^1.6.5",
-    "ethers": "^5.4.6",
     "web3modal": "^1.9.4"
   },
   "scripts": {
