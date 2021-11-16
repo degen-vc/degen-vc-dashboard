@@ -9,6 +9,8 @@ import { MaxUint256 } from "@ethersproject/constants";
 function DGVCPrice({signer, provider}: {signer: Signer | undefined, provider: any}) {
   const { tokenSwapAddress, dgvc1Address, dgvcAddress } = targetNetwork;
 
+  const DECIMALS = 18;
+
   const toast = useToast();
 
   const [value, setValue] = useState("");
@@ -51,7 +53,7 @@ function DGVCPrice({signer, provider}: {signer: Signer | undefined, provider: an
     if (signer) {
       const allowance = await v1Token!.allowance(signer.getAddress(), tokenSwapAddress);
       
-      if (allowance.lt(utils.parseUnits(value, 18))) {
+      if (allowance.lt(utils.parseUnits(value, DECIMALS))) {
         try {
           const approveTxn = await v1Token!
             .connect(signer!)
@@ -64,7 +66,7 @@ function DGVCPrice({signer, provider}: {signer: Signer | undefined, provider: an
         }
       }
       try {
-        const tx = await tokenSwap!.connect(signer!).bridge(utils.parseUnits(value, 18));
+        const tx = await tokenSwap!.connect(signer!).bridge(utils.parseUnits(value, DECIMALS));
         await tx.wait();
         // await fetchUserBalance();
       } catch {
@@ -91,7 +93,7 @@ function DGVCPrice({signer, provider}: {signer: Signer | undefined, provider: an
           Migrate to DGVCv2
         </Heading>
     <HStack>
-    <Text color="gray.300">DGVCv1 Balance: {formatNumber(dgvcBalance, 18)}</Text>
+    <Text color="gray.300">DGVCv1 Balance: {formatNumber(dgvcBalance, DECIMALS)}</Text>
       <NumberInput
       onChange={(valueString) => setValue(valueString)}
       value={value}>
@@ -99,7 +101,15 @@ function DGVCPrice({signer, provider}: {signer: Signer | undefined, provider: an
           <Button
             h="1.75rem"
             size="sm"
-            onClick={() => setValue(formatNumber(swapBalance, 18))}
+            onClick={() => 
+              {
+                if(swapBalance.lte(dgvcBalance)) {
+                  setValue(formatNumber(swapBalance, DECIMALS));
+                } else {
+                  setValue(formatNumber(dgvcBalance, DECIMALS));
+                }
+              }
+            }
             isDisabled={!signer}
           >
             Max
