@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 
-import { Flex, Text, Link, HStack, Box} from "@chakra-ui/react";
+import { Flex, Text, Link, HStack, Box, Spacer} from "@chakra-ui/react";
 import ConnectWallet, { targetNetwork } from "./ConnectWallet";
 import { Web3Provider, Signer } from "../../types";
 

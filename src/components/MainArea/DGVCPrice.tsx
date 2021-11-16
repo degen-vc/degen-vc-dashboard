@@ -1,4 +1,5 @@
-import { HStack, Text, Spacer, NumberInput, Heading, Box, NumberInputField, Button, useToast, InputRightElement } from "@chakra-ui/react";
+import { HStack, Text, Spacer, NumberInput, Heading, Box, NumberInputField, Button, useToast, InputRightElement, Link } from "@chakra-ui/react";
+import { ExternalLinkIcon } from '@chakra-ui/icons'
 import { useState, useEffect } from "react";
 import { formatNumber, toDecimal } from "../../utils";
 import { targetNetwork } from "./ConnectWallet";
@@ -6,7 +7,7 @@ import { Contract, ethers, BigNumber, utils } from "ethers";
 import { Web3Provider, Signer } from "../../types";
 import { MaxUint256 } from "@ethersproject/constants";
 
-function DGVCPrice({signer, provider}: {signer: Signer | undefined, provider: any}) {
+function DGVCPrice({ signer, provider }: { signer: Signer | undefined, provider: any }) {
   const { tokenSwapAddress, dgvc1Address, dgvcAddress } = targetNetwork;
 
   const DECIMALS = 18;
@@ -52,7 +53,7 @@ function DGVCPrice({signer, provider}: {signer: Signer | undefined, provider: an
     setLoading(true);
     if (signer) {
       const allowance = await v1Token!.allowance(signer.getAddress(), tokenSwapAddress);
-      
+
       if (allowance.lt(utils.parseUnits(value, DECIMALS))) {
         try {
           const approveTxn = await v1Token!
@@ -89,45 +90,50 @@ function DGVCPrice({signer, provider}: {signer: Signer | undefined, provider: an
   return (
     <Box pt={{ base: "1.5rem", md: "2rem" }}>
       <Box border="1.5px solid white" p="1.5rem" px="2rem" rounded="xl">
-      <Heading fontSize="2xl" pb="1rem">
-          Migrate to DGVCv2
-        </Heading>
-    <HStack>
-    <Text color="gray.300">DGVCv1 Balance: {formatNumber(dgvcBalance, DECIMALS)}</Text>
-      <NumberInput
-      onChange={(valueString) => setValue(valueString)}
-      value={value}>
-        <InputRightElement w="4.5rem" mr="0.1rem">
-          <Button
-            h="1.75rem"
-            size="sm"
-            onClick={() => 
-              {
-                if(swapBalance.lte(dgvcBalance)) {
-                  setValue(formatNumber(swapBalance, DECIMALS));
-                } else {
-                  setValue(formatNumber(dgvcBalance, DECIMALS));
+        <HStack>
+          <Heading fontSize="2xl" pb="1rem">
+            Migrate to DGVCv2
+          </Heading>
+          <Spacer />
+          <Link href="https://wallet.polygon.technology/bridge" isExternal>
+            Polygon Bridge <ExternalLinkIcon mx="2px" />
+          </Link>
+        </HStack>
+        <Text color="gray.300">DGVCv1 Balance: {formatNumber(dgvcBalance, DECIMALS)}</Text>
+        <HStack>
+          <NumberInput
+            onChange={(valueString) => setValue(valueString)}
+            value={value}>
+            <InputRightElement w="4.5rem" mr="0.1rem">
+              <Button
+                h="1.75rem"
+                size="sm"
+                onClick={() => {
+                  if (swapBalance.lte(dgvcBalance)) {
+                    setValue(formatNumber(swapBalance, DECIMALS));
+                  } else {
+                    setValue(formatNumber(dgvcBalance, DECIMALS));
+                  }
                 }
-              }
-            }
+                }
+                isDisabled={!signer}
+              >
+                Max
+              </Button>
+            </InputRightElement>
+            <NumberInputField />
+          </NumberInput>
+          <Spacer />
+          <Button
+            isLoading={loading}
+            pl="1rem"
+            mt="1rem"
             isDisabled={!signer}
-          >
-            Max
-          </Button>
-        </InputRightElement>
-        <NumberInputField />
-      </NumberInput>
-      <Spacer />
-      <Button
-      isLoading={loading}
-      pl="1rem"
-      mt="1rem"
-      isDisabled={!signer}
-      onClick={() => {
-        bridge();
-      }}>Migrate</Button>
-    </HStack>
-    </Box>
+            onClick={() => {
+              bridge();
+            }}>Migrate</Button>
+        </HStack>
+      </Box>
     </Box>
   );
 }
